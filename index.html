@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal with Confirmation Dialog</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 2.5rem;
+            word-break: break-word;
+        }
+        
+        p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        
+        .open-modal-btn {
+            background: #2575fc;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+        }
+        
+        .open-modal-btn:hover {
+            background: #1a63cf;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(37, 117, 252, 0.5);
+        }
+        
+        /* First Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .modal:target {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.4s ease;
+        }
+        
+        .modal:target .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .modal-header h2 {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            color: #6c757d;
+            font-size: 24px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            color: #2575fc;
+        }
+        
+        .modal-body {
+            padding: 30px;
+            text-align: left;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            border-color: #2575fc;
+            outline: none;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 16px;
+        }
+        
+        .btn-close {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-close:hover {
+            background: #c82333;
+        }
+        
+        .btn-confirm {
+            background: #2575fc;
+            color: white;
+        }
+        
+        .btn-confirm:hover {
+            background: #1a63cf;
+        }
+        
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+        
+        /* Confirmation Modal */
+        .confirm-modal {
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1001;
+        }
+        
+        .confirm-modal:target {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .confirm-modal:target + .modal {
+            opacity: 0.3;
+            filter: blur(5px);
+        }
+        
+        .confirm-modal-content {
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.5s ease;
+            z-index: 1002;
+            max-width: 350px;
+        }
+        
+        .alert i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        
+        .alert-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .alert-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        /* Checkbox for CSS-only functionality */
+        input[type="checkbox"] {
+            display: none;
+        }
+        
+        /* Show danger alert when do-not-save is checked */
+        #do-not-save:checked ~ .alert-danger {
+            opacity: 1;
+            transform: translateX(0);
+            animation: hideAlert 2s forwards 0.5s;
+        }
+        
+        /* Show success alert when save-success is checked */
+        #save-success:checked ~ .alert-success {
+            opacity: 1;
+            transform: translateX(0);
+            animation: hideAlert 2s forwards 0.5s;
+        }
+        
+        @keyframes hideAlert {
+            0% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            70% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(100px);
+                visibility: hidden;
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="app-title">App Title</h1>
+        <p>Click the button below to change the application title. You can save your changes or close without saving.</p>
+        
+        <a href="#modal" class="open-modal-btn">Change Title</a>
+    </div>
+    
+    <!-- First Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Change App Title</h2>
+                <a href="#" class="close-btn">&times;</a>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="new-title">New App Title</label>
+                    <input type="text" id="new-title" placeholder="Enter new app title" value="App Title">
+                </div>
+                <p>Click "Save Changes" to update the title or "Close" to discard your changes.</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#confirm-modal" class="btn btn-close">Close</a>
+                <label for="save-success" class="btn btn-confirm">Save Changes</label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal confirm-modal">
+        <div class="modal-content confirm-modal-content">
+            <div class="modal-header">
+                <h2>Confirm Close</h2>
+                <a href="#" class="close-btn">&times;</a>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to close without saving the new title? Your changes will be lost.</p>
+            </div>
+            <div class="modal-footer">
+                <label for="do-not-save" class="btn btn-close">Do not Save</label>
+                <a href="#" class="btn btn-cancel">Cancel</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden checkboxes to trigger the alerts -->
+    <input type="checkbox" id="do-not-save">
+    <input type="checkbox" id="save-success">
+    
+    <!-- Danger Alert Message -->
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>Data not saved! Changes discarded.</span>
+    </div>
+    
+    <!-- Success Alert Message -->
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>Success! App title updated.</span>
+    </div>
+    
+    <script>
+        // Function to update the app title when saving changes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle save success
+            const saveSuccessCheckbox = document.getElementById('save-success');
+            const newTitleInput = document.getElementById('new-title');
+            const appTitle = document.getElementById('app-title');
+            
+            saveSuccessCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Update the app title with the new value
+                    appTitle.textContent = newTitleInput.value;
+                    
+                    // Uncheck after a delay
+                    setTimeout(() => {
+                        this.checked = false;
+                    }, 3000);
+                }
+            });
+            
+            // Handle do not save
+            const doNotSaveCheckbox = document.getElementById('do-not-save');
+            
+            doNotSaveCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Reset the input field to the current app title
+                    newTitleInput.value = appTitle.textContent;
+                    
+                    // Uncheck after a delay
+                    setTimeout(() => {
+                        this.checked = false;
+                    }, 3000);
+                }
+            });
+            
+            // Initialize the input field with the current app title
+            newTitleInput.value = appTitle.textContent;
+        });
+    </script>
+</body>
+</html>
